@@ -1,0 +1,271 @@
+\documentclass[notheorems, serif, table, compress]{beamer}  %dvipdfm选项是关键, 否则编译统统通不过
+%%------------------------常用宏包------------------------
+%%注意,  beamer 会默认使用下列宏包: amsthm,  graphicx,  hyperref,  color,  xcolor,  等等
+\usepackage{fontspec, xunicode, xltxtra}  % for XeTeX
+\usepackage{verbatim}
+\usepackage{mathabx}
+\usepackage{latexsym}
+\usepackage{amsfonts, amssymb}
+\usepackage{styles/iplouclistings}
+\usepackage{fancybox}
+\usepackage{colortbl}
+\usepackage{tcolorbox}
+%\usepackage[T1]{fontenc}
+%\usepackage{bookman}
+\usepackage{subfigure}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{animate}
+\usepackage[absolute, overlay]{textpos}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage[americaninductors, europeanresistors]{circuitikz}
+\usepackage{tikz}
+\usepackage{fancybox}     %% 定义zhushadow时用到
+\usepackage{pifont} %ding用到
+\usepackage{mathrsfs} %一些特殊数学符号
+\usepackage{extarrows}%添加上下可加文字的长等号
+\usepackage{float}
+\newsavebox{\mysaveboxOne}  %%为了在only中使用lstlisting
+\newsavebox{\mysaveboxTwo}
+\newsavebox{\mysaveboxThree}
+\newsavebox{\mysaveboxFour}
+\newsavebox{\mysaveboxFive}
+\newsavebox{\mysaveboxSix}
+\newsavebox{\mysaveboxSeven}
+\newcommand\zhushadow[2][purple]{\hskip5pt\shadowbox{\color{#1}\small\kai #2\vspace{3mm}}}
+
+%%------------------------ThemeColorFont------------------------
+%% Presentation Themes
+% \usetheme[<options>]{<name list>}
+%\usetheme{Madrid}
+\usetheme{Berkeley}
+%% Inner Themes双精度计算
+% \useinnertheme[<options>]{<name>}
+%% Outer Themes
+% \useoutertheme[<options>]{<name>}
+%\useoutertheme{miniframes} 
+%% Color Themes 
+%\usecolortheme[<options>]{<name list>}
+%% Font Themes
+\usefonttheme{serif}
+\setbeamertemplate{background canvas}[vertical shading][bottom=white, top=structure.fg!7] %%背景色,  上25%的蓝,  过渡到下白.
+\setbeamertemplate{theorems}[numbered]
+\setbeamertemplate{navigation symbols}{}   %% 去掉页面下方默认的导航条.
+\usepackage{styles/zhfontcfg}
+%\setsansfont[Mapping=tex-text]{文泉驿正黑}  %% 需要fontspec宏包
+     %如果装了Adobe Acrobat, 可在font.conf中配置Adobe字体的路径以使用其中文字体
+     %也可直接使用系统中的中文字体如SimSun, SimHei, 微软雅黑 等
+     %原来beamer用的字体是sans family;注意Mapping的大小写, 不能写错
+     %设置字体时也可以直接用字体名，以下三种方式等同：
+     %\setromanfont[BoldFont={黑体}]{宋体}
+     %\setromanfont[BoldFont={SimHei}]{SimSun}
+     %\setromanfont[BoldFont={"[simhei.ttf]"}]{"[simsun.ttc]"}
+%%------------------------MISC------------------------
+\graphicspath{{figures/}}         %% 图片路径. 本文的图片都放在这个文件夹里了.
+%%------------------------listing------------------------
+%\lstset{language=[LaTeX]TeX, Python}
+%%------------------------正文------------------------
+\begin{document}
+\XeTeXlinebreaklocale "zh"         % 表示用中文的断行
+\XeTeXlinebreakskip = 0pt plus 1pt % 多一点调整的空间
+%%----------------------------------------------------------
+%% This is only inserted into the PDF information catalog. Can be left
+%% out.
+%%%
+%% Delete this,  if you do not want the table of contents to pop up at
+%% the beginning of each subsection:
+%\AtBeginSection[]{                              % 在每个Section前都会加入的Frame
+%  \frame<handout:0>{
+%    \frametitle{Contents}\small
+%    \tableofcontents[current, currentsubsection]
+%  }
+%}
+%
+%\AtBeginSubsection[]                            % 在每个子段落之前
+%{
+%  \frame<handout:0>                             % handout:0 表示只在手稿中出现
+%  {
+%    \frametitle{Contents}\small
+%    \tableofcontents[current, currentsubsection] % 显示在目录中加亮的当前章节
+%  }
+%}
+
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+
+%%----------------------------------------------------------
+\logo{\includegraphics[scale=0.13]{ouclogo.png}}
+\title{Local Feature Extraction }
+\subtitle{SIFT, SURF and LBP}
+\author[]{\textcolor{olive}{常琳}}
+\institute[CVBIOUC]
+{
+\small\textcolor{violet}{CVBIOUC\\
+%Ocean University of China\\
+\url{http://vision.ouc.edu.cn/~zhenghaiyong}}
+}
+%\date[]{}
+%\titlegraphic{
+%\includegraphics[height=1.0cm]{ouc-logo.jpg}}
+\frame{ \titlepage }
+%%----------------------------------------------------------
+%\section*{Contents}
+\frame{\frametitle{Contents}\tableofcontents}
+%%----------------------------------------------------------
+\def\hilite<#1>{\temporal<#1>{\color{blue!15}}{\color{black}}{\color{black}}}
+\newcommand{\shadow}[2][purple]{\hskip5pt\shadowbox{\color{#1}\small \kai #2\vspace{3mm}}}
+\newcommand{\colorrbox}[2][purple]{\doublebox{\color{#1}\small \kai#2}}
+
+%============================================================================
+
+\section{Introduction} 
+
+%==========================================================================
+
+
+\begin{frame}[fragile]
+\frametitle{Introduction}
+
+Application:%特征提取，局部特征提取应用：
+
+\begin{itemize}
+
+\item SIFT
+
+
+\item SURF
+
+
+\item LBP
+
+\end{itemize}
+
+\end{frame}
+
+%=========================================================================
+
+\section{SIFT}
+
+\begin{frame}[fragile]
+\frametitle{SIFT}
+
+SIFT(Scale-invariant feature transform):
+
+
+
+\end{frame}
+
+
+\subsection{}
+\begin{frame}[fragile]
+\frametitle{Regression}
+
+Houses Price:regression.
+
+%房价模型是回归问题
+
+$h_{\Theta}(x)=\Theta_{0}+\Theta_{1}x$ is the hypothesis price of a house.
+%是房屋价格的预测公式
+\begin{equation}
+J(\Theta)=\frac{1}{2m}\sum_{i=1}^{m}(h_{\Theta}(x^{(i)})-y^{(i)})^{2}
+\end{equation}
+
+For the minimum of $J(\Theta)$. %寻找预测价格和实际价格的差的最小值。
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Regression}
+
+Using gradient descent algorithm:
+
+\begin{equation}
+\Theta_{j}:=\Theta_{j}-\alpha\frac{\partial J(\Theta_{0},\Theta_{1})}{\partial \Theta_{j}}
+\end{equation}
+Where $\alpha$ is the learning rate.%控制以多大幅度更新Theta
+\end{frame}
+%=========================================================================
+\section{Pattern Recognition}
+\subsection{Clustering Analysis}%聚类分析
+\begin{frame}[fragile]
+\frametitle{Clustering Analysis}
+
+Seperate unclassified samples into some class　using an algorithm .%通过某种算法把未知类别的样本划分成若干类别。
+
+Basic steps:
+
+\begin{enumerate}
+\item Feature selection %特征选择
+
+\item Proximity measure　%相似性测度，定量测定两特征如何相似或不相似
+
+\item Clustering criterion　%聚类准则，和类的定义有关，能对分类过程或分类结果优劣进行评估的准则函数,聚类算法里没出现，这里先不讲了，类与点间的距离后面的聚类算法里会涉及一些？
+
+\item Clustering algorithm　%聚类算法　按相似性测度和聚类准则揭示数据集的聚类结构
+
+\item Interpretation of the results　%结果判定
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Proximity measure(Point to point)--Distance}%相似性测度--距离测度，还有相关系数和，指数相似测度，匹配测度。
+
+Euclidean:%欧式距离
+
+\begin{equation}
+d(\vec{x},\vec{y})=[\sum_{i=1}^{n}(x_{i}-y_{i})^{2}]^{1/2}
+\end{equation}
+
+Unchanged after moving and rotating.%平移和旋转不变性
+
+Mahalanobis:%马氏距离
+
+\begin{equation}
+d^{2}(\vec{x_{i}},\vec{x_{j}})=(\vec{x_{i}}-\vec{x_{j}})'V^{-1}(\vec{x_{i}},\vec{x_{j}})
+\end{equation}
+ 
+Where
+
+\begin{equation}
+V=\frac{1}{m-1}\sum_{i=1}^{m}(\vec{x_{i}}-\overline{\vec{x}})(\vec{x_{i}}-\overline{\vec{x}})'
+\end{equation}
+%协方差矩阵的无偏估计
+Unchanged after moving and rotating，or multiplying a nonsingular matrix%平移和旋转,非奇异线性变换不变性
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Clustering criterion--Functions}%聚类的准则函数
+
+\begin{enumerate}
+\item Intra-class--the minimum distance%类内距离准则－－总的类内距离最小作为聚类准则
+
+For:patterns are crowded in class.%适用于类内模式较密集，类间距离相对类内距离大。
+
+\item Between-class--the maximum distance %总的类间距离最大
+
+For:patterns which are equally distributed.
+
+\item Function based on both Intra-class and between-class%基于类内和类间距离的函数
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Clustering criterion--Functions}%聚类的准则函数
+The intra-class dispersion matrix:%类内离差阵
+\begin{equation}
+\end{equation} 
+\end{frame}
+\begin{frame}[fragile]
+
+\frametitle{Clustering algorithm}%聚类算法
+
+
+
+\end{frame}
+
+
+%=========================================================================
+\end{document}
