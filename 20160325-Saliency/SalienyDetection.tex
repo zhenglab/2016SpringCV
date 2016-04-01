@@ -1,0 +1,911 @@
+\documentclass[notheorems,serif,table,compress]{beamer}  %dvipdfm选项是关键,否则编译统统通不过
+%%------------------------常用宏包------------------------
+%%注意, beamer 会默认使用下列宏包: amsthm, graphicx, hyperref, color, xcolor, 等等
+\usepackage{fontspec,xunicode,xltxtra}  % for XeTeX
+\usepackage{verbatim}
+\usepackage{mathabx}
+\usepackage{latexsym}
+\usepackage{amsfonts,amssymb}
+\usepackage{styles/iplouclistings}
+\usepackage{fancybox}
+\usepackage{colortbl}
+\usepackage{tcolorbox}
+%\usepackage[T1]{fontenc}
+%\usepackage{bookman}
+\usepackage{subfigure}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{animate}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage[americaninductors,europeanresistors]{circuitikz}
+\usepackage{tikz}
+\usepackage{fancybox}     %% 定义zhushadow时用到
+\usepackage{pifont} %ding用到
+\newsavebox{\mysaveboxOne}  %%为了在only中使用lstlisting
+\newsavebox{\mysaveboxTwo}
+\newsavebox{\mysaveboxThree}
+\newsavebox{\mysaveboxFour}
+\newsavebox{\mysaveboxFive}
+\newsavebox{\mysaveboxSix}
+\newsavebox{\mysaveboxSeven}
+\newcommand\zhushadow[2][purple]{\hskip5pt\shadowbox{\color{#1}\small\kai #2\vspace{3mm}}}
+
+%%------------------------ThemeColorFont------------------------
+%% Presentation Themes
+% \usetheme[<options>]{<name list>}
+%\usetheme{Madrid}
+\usetheme{Berkeley}
+%% Inner Themes双精度计算
+% \useinnertheme[<options>]{<name>}
+%% Outer Themes
+% \useoutertheme[<options>]{<name>}
+%\useoutertheme{miniframes} 
+%% Color Themes 
+%\usecolortheme[<options>]{<name list>}
+%% Font Themes
+\usefonttheme{serif}
+\setbeamertemplate{background canvas}[vertical shading][bottom=white,top=structure.fg!7] %%背景色, 上25%的蓝, 过渡到下白.
+\setbeamertemplate{theorems}[numbered]
+\setbeamertemplate{navigation symbols}{}   %% 去掉页面下方默认的导航条.
+\usepackage{styles/zhfontcfg}
+%\setsansfont[Mapping=tex-text]{文泉驿正黑}  %% 需要fontspec宏包
+     %如果装了Adobe Acrobat,可在font.conf中配置Adobe字体的路径以使用其中文字体
+     %也可直接使用系统中的中文字体如SimSun,SimHei,微软雅黑 等
+     %原来beamer用的字体是sans family;注意Mapping的大小写,不能写错
+     %设置字体时也可以直接用字体名，以下三种方式等同：
+     %\setromanfont[BoldFont={黑体}]{宋体}
+     %\setromanfont[BoldFont={SimHei}]{SimSun}
+     %\setromanfont[BoldFont={"[simhei.ttf]"}]{"[simsun.ttc]"}
+%%------------------------MISC------------------------
+\graphicspath{{figures/}}         %% 图片路径. 本文的图片都放在这个文件夹里了.
+%%------------------------listing------------------------
+%\lstset{language=[LaTeX]TeX,Python}
+%%------------------------正文------------------------
+\begin{document}
+\XeTeXlinebreaklocale "zh"         % 表示用中文的断行
+\XeTeXlinebreakskip = 0pt plus 1pt % 多一点调整的空间
+%%----------------------------------------------------------
+%% This is only inserted into the PDF information catalog. Can be left
+%% out.
+%%%
+%% Delete this, if you do not want the table of contents to pop up at
+%% the beginning of each subsection:
+%\AtBeginSection[]{                              % 在每个Section前都会加入的Frame
+%  \frame<handout:0>{
+%    \frametitle{Contents}\small
+%    \tableofcontents[current,currentsubsection]
+%  }
+%}
+%
+%\AtBeginSubsection[]                            % 在每个子段落之前
+%{
+%  \frame<handout:0>                             % handout:0 表示只在手稿中出现
+%  {
+%    \frametitle{Contents}\small
+%    \tableofcontents[current,currentsubsection] % 显示在目录中加亮的当前章节
+%  }
+%}
+
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+
+%%----------------------------------------------------------
+\logo{\includegraphics[scale=0.07]{ouc-logo.jpg}}
+\title{Saliency Detection}
+%\subtitle{Bottom-Up Saliency Detection Model Based on Human Visual Sensitivity and Amplitude Spectrum}
+\subtitle{显著性检测}
+\author[]{\textcolor{olive}{Yafei Zhu\quad Lin Chang}}
+\institute[CVBIOUC]
+{
+\small\textcolor{violet}{CVBIOUC\\
+%Ocean University of China\\
+\url{http://vision.ouc.edu.cn/~zhenghaiyong}}
+}
+\date[March 25, 2016]{March 25, 2016}
+%\titlegraphic{
+%\includegraphics[height=1.0cm]{ouc-logo.jpg}}
+\frame{ \titlepage }
+%%----------------------------------------------------------
+%\section*{Contents}
+\frame{\frametitle{Contents}\tableofcontents}
+%%----------------------------------------------------------
+\def\hilite<#1>{\temporal<#1>{\color{blue!15}}{\color{black}}{\color{black}}}
+\newcommand{\shadow}[2][purple]{\hskip5pt\shadowbox{\color{#1}\small \kai #2\vspace{3mm}}}
+\newcommand{\colorrbox}[2][purple]{\doublebox{\color{#1}\small \kai#2}}
+
+%============================================================================
+
+\section{Background}
+
+%==========================================================================
+
+
+\begin{frame}[fragile]
+\frametitle{What?}
+\begin{columns}
+\begin{column}{\leftmargini}
+\end{column}
+\begin{column}{0.5\linewidth}
+Saliency(显著)
+
+\begin{itemize}
+\item 明显、引入注目
+\end{itemize}
+\end{column}
+\pause
+\begin{column}{0.16\linewidth}
+\huge $\Longleftarrow$ 
+\end{column}
+\pause
+\begin{column}{0.3\linewidth}
+ \centering{\color{blue}{Visual Attention}}
+\end{column}
+\end{columns}\vspace{1ex}
+
+
+\begin{figure}
+  \centering
+\includegraphics[width=2in]{tianxianbaobao.jpg}
+  \caption{What did you see?}
+ \label{tianxianbaobao}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{What?}
+  A rich stream of visual data enters our eyes every second\footnote{K. Koch \textit{et al.}, ``How much the eye tells the brain'', Current Biology, 2006. }.\newline
+  
+  \pause
+  \centering{\Huge \color{blue}{$10^8 \sim 10^9 bits$}}
+\end{frame}
+  
+  
+\begin{frame}
+  \frametitle{What?}
+  \begin{center}
+  \includegraphics[width=0.85\linewidth]{tuxiang.png}
+  \end{center}
+  
+  \pause
+  \centering{\huge $500 \times 375 \times 3 \times 8 = {\color{blue}4500000} bits$}
+\end{frame}
+
+  
+\begin{frame}
+\frametitle{What?}
+  \begin{center}
+  \includegraphics[width=1\linewidth]{people}
+  \end{center}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Vision as data reduction}
+\begin{columns}
+\begin{column}{\leftmargini}
+\end{column}
+\begin{column}{0.55\linewidth}
+\begin{itemize}
+\item Raw feed from camera/eyes:
+\begin{itemize}
+\item[-] {\huge \color{blue}$10^{7-9}$} Bytes/s
+\end{itemize}
+\item Extraction of edges and salient features
+\begin{itemize}
+\item[-] {\huge \color{blue}$10^{3-4}$} Bytes/s
+\end{itemize}
+\item High-level interpretation of scene
+\begin{itemize}
+\item[-] {\huge \color{blue}$10^{1-2}$} Bytes/s
+\end{itemize}
+\end{itemize}
+\end{column}
+
+\begin{column}{0.45\linewidth}
+\centering\includegraphics[width=1.5in]{friendshipLove}
+\end{column}
+\end{columns}\vspace{1ex}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Visual Attention}
+\only<1>{
+  \begin{center}
+ \includegraphics[width=0.8\linewidth]{apple1}  
+  \newline
+  \usebox{\mysaveboxOne}
+  \end{center}}
+  
+  \only<2>{
+  \begin{center}
+  \includegraphics[width=0.65\linewidth]{orientation}
+  \newline
+  \usebox{\mysaveboxTwo}
+  \end{center}}
+
+ \only<3>{
+  \begin{center}
+  \includegraphics[width=0.8\linewidth]{complex}
+  \newline
+  \usebox{\mysaveboxThree}
+  \end{center}}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Bottom-up vs Top-down}
+\centering\includegraphics[width=9cm]{BottomupTopdown.png}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Visual Attention}
+\centering\includegraphics[width=10cm]{fields.png}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Theory}
+\begin{itemize}
+\item ``{\color{blue}\emph{Feature Integration Theory}}'', Treisman \& Gelade, 1980.
+\item ``{\color{blue}\emph{Guided Search Theory}}'', Wolfe \& Cave, 1989.
+\item ``{\color{blue}\emph{Integrated Competition Theory}}'', Desimone \& Duncan, 1995.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Framework}
+\begin{itemize}
+\item Koch and Ullman\footnote{C. Koch and S. Ullman, ``Shifts in selective visual attention: towards the underlying neural circuitry'', Human Neurobiology, 1985.} proposed a feed-forward model to combine features and introduced the concept of a {\color{blue}\emph{saliency map}} which is a topographic map that represents conspicuousness of scene locations.
+\item Zoom Lens Model\footnote{Eriksen, C. W. and J. D. St. James, ``Visual attention within and around the field of focal attention: a zoom lens model'', Perception and Psychophysics, 1986.}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Basic Structure of Computational Models}
+\centering\includegraphics[width=10cm]{BasicStructure.jpg}
+\end{frame}
+
+
+\section{Development}
+
+\begin{frame}
+\frametitle{Two Waves\footnote{Ali Borji \textit{et al.}, ``Salient object detection: a survey'', 2014.}}
+\centering\includegraphics[width=10cm]{wave}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Fixation Prediction}
+Fixation prediction models are constructed originally to understand human visual attention and eye movement prediction.
+
+\centering\includegraphics[width=8cm]{fixationPrediction.png}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Fixation Prediction：example}
+\only<1>{
+  \begin{center}
+ \includegraphics[width=0.9\linewidth]{movement.png}  
+  \newline
+  \usebox{\mysaveboxOne}
+  \end{center}}
+  
+  \only<2>{
+  \begin{center}
+  \includegraphics[width=0.9\linewidth]{movement1.png}
+  \newline
+  \usebox{\mysaveboxTwo}
+  \end{center}}
+
+ \only<3>{
+  \begin{center}
+  \includegraphics[width=0.9\linewidth]{movement2.png}
+  \newline
+  \usebox{\mysaveboxThree}
+  \end{center}}
+  
+  \only<4>{
+  \begin{center}
+  \includegraphics[width=0.9\linewidth]{movement3.png}
+  \newline
+  \usebox{\mysaveboxFour}
+  \end{center}}
+  
+  \only<5>{
+  \begin{center}
+  \includegraphics[width=0.9\linewidth]{movement4.png}
+  \newline
+  \usebox{\mysaveboxFive}
+  \end{center}}
+  
+  \only<6>{
+  \begin{center}
+  \includegraphics[width=0.9\linewidth]{movement5.png}
+  \newline
+  \usebox{\mysaveboxSix}
+  \end{center}}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Representative Work}
+\begin{columns}
+\begin{column}{\leftmargini}
+\end{column}
+\begin{column}{0.6\linewidth}
+\begin{itemize}
+\item A model of saliency-based visual attention for rapid scene analysis. PAMI 1998, Itti \textit{et al.}.
+\end{itemize}
+\end{column}
+\begin{column}{0.45\linewidth}
+\centering\includegraphics[width=1in]{itti}
+\end{column}
+\end{columns}\vspace{1ex}
+
+\begin{figure}[!ht]
+  \begin{minipage}[t]{0.45\textwidth}
+  \includegraphics[width=1.8in]{sign}
+  \end{minipage}
+  \begin{minipage}[t]{0.45\textwidth}
+  \includegraphics[width=1.8in]{signSaliency}
+  \end{minipage}
+  \end{figure} 
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Architecture}
+\begin{figure}
+\includegraphics[width=10cm]{ITTImodel.png}
+\end{figure}
+\end{frame}
+
+%
+%\begin{frame}
+%\frametitle{General Procedure of fixation prediction models}
+%\centering\includegraphics[width=10cm]{fixationArchitecture}
+%\end{frame}
+
+
+%\begin{frame}
+%\frametitle{How to evaluate fixation prediction models?}
+%\centering\includegraphics[width=10cm]{evaluateFixationModel}
+%\end{frame}
+
+
+\begin{frame}
+\frametitle{Salient Object Detection}
+\centering\includegraphics[width=7cm]{FT.png}
+\begin{itemize}
+\item Learning to detect a salient object. CVPR 2007, Tie Liu \textit{et al.}.
+\item Frequency-tuned salient region detection. CVPR 2009, Achanta \textit{et al.}.
+\end{itemize}
+\end{frame}
+
+
+%\begin{frame}
+%\frametitle{FT (\color{yellow} \textbf{Demo})}
+%\centering\includegraphics[width=7cm]{FT.png}
+%\begin{itemize}
+%\item Learning to detect a salient object. CVPR 2007, Tie Liu et al.
+%\item Frequency-tuned salient region detection. CVPR 2009, Achanta et al.
+%\end{itemize}
+%\end{frame}
+
+
+\begin{frame}
+\frametitle{State-of-the-art}
+\centering\includegraphics[width=6cm]{latest}
+
+  From left to right: PBS\footnote{Chuan Yang \textit{et al.}, ``Graph-regularized saliency detection with convex-hull-based center prior, Signal Processing Letters, 2013.}, DRFI\footnote{Huaizu Jiang \textit{et al.}, ``Salient object detection: a discriminative regional feature integration approach'', in CVPR, 2013.}, RBD\footnote{Wangjiang Zhu \textit{et al.}, ``Saliency optimization from robust background detection'', in CVPR, 2014.}, HDCT\footnote{Jiwhan Kim \textit{et al.}, ``Salient region detection via high-dimensional color transform'', in CVPR, 2014.}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Why? }
+The emergence of salient object detection models is driven by the requirement of saliency-based applications.
+\begin{figure}[!ht]
+  \begin{minipage}[t]{0.4\textwidth}
+  \includegraphics[height=0.7in]{resizing}
+  \caption{Content aware resizing}
+  \end{minipage}
+  \begin{minipage}[t]{0.4\textwidth}
+  \includegraphics[height=0.7in]{manipulation}
+  \caption{Object maniputation}
+  \end{minipage}
+
+\hspace{0.28in}
+  \begin{minipage}[t]{0.4\textwidth}
+  \includegraphics[height=0.7in]{sketch2photo}
+  \caption{Image montage}
+  \end{minipage}
+  \begin{minipage}[t]{0.4\textwidth}
+  \hspace{0.35in}
+  \includegraphics[height=0.7in]{collage.jpg}
+  \caption{Image collage}
+  \end{minipage}
+\end{figure} 
+\end{frame}
+
+
+\begin{frame}
+\frametitle{What can saliency not do?}
+\centering\includegraphics[width=9cm]{challenge.JPG}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{General Procedure}
+\centering\includegraphics[width=4cm]{flowchart.png}
+\end{frame}
+
+
+\section{Features}
+
+\begin{frame}
+\frametitle{Features}
+Salient object detection: A discriminative regional feature integration approach, CVPR 2013
+\begin{itemize}
+\item 26维颜色纹理等对比度特征
+
+\includegraphics[width=8cm]{ContrastFeature.png}
+\item 34维的区域特征
+
+\includegraphics[width=8cm]{RegionProperty.png}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Features}
+\begin{itemize}
+\item Pixel-based
+\begin{itemize}
+\item Contrast: $U_p(x) = \sum_{x'\in I\textbackslash \{ x\}}D(x', x)$
+\item Property: Geometric features
+\end{itemize}
+\item Patch/Region/Superpixel-based
+\begin{itemize}
+\item {\color{magenta}Contrast}: $U_r(A_i) = \sum_{1\le k \le N, k \ne i}|\Lambda|D(\Lambda_k, \Lambda_i)$
+\item {\color{magenta}Property}: Geometric features/Appearance features
+\end{itemize}
+\item Multi-scale based
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{172} Contrast}
+\begin{itemize}
+\item Color
+\item Texture
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Color}
+\begin{itemize}
+\item {\color{blue}\emph{Color}} is the visual perceptual property corresponding in humans to the categories called red, blue, yellow and others.
+\item {\color{blue}\emph{Color Space}} is defined to identify colors numerically by their coordinates.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Three Elements of Color}
+\begin{itemize}
+\item Hue: What we think as ``color''--yellow, orange, cyan and magenta are examples of different hues
+\item Saturation: Saturation refers to the relative purity or the amount of white light mixed with a hue
+\item Intensity
+\end{itemize}
+\centering\includegraphics[width=6cm]{HSIColorModel.jpg}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Coding methods for humans}
+\begin{itemize}
+\item \textbf{RGB} is an additive system (add colors to black) used for displays.
+\item \textbf{CMY} is a subtractive system for printing.
+\item \textbf{HSI} is a good perceptual space for art, psychology, and recognition.
+\item \textbf{YIQ} is used for TV and is good for compression. 
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Color Space}
+\begin{itemize}
+\item RGB
+\item Lab
+\item HSV
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Color Histogram\footnote{Huaizu Jiang \textit{et al.}, ``Salient object detection: a discriminative regional feature integration approach'', in CVPR, 2013.} }
+\begin{itemize}
+\item Quantize each color channel to have 16 different values
+\item Compute matrix $Q\_rgb$
+\item Superpixel segmentation
+\item Compute color histogram of each superpixel
+\item Compute color histogram contrast feature of each super pixel
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Color Histogram}
+\begin{figure}
+  \centering\includegraphics[width=1in]{1.jpg}
+  \caption{Image}
+ \label{1}
+  \end{figure}
+
+\begin{figure}
+  \centering\includegraphics[width=3in]{RGBhist.jpg}
+  \caption{Color histogram}
+ \label{RGBhist}
+  \end{figure}
+\end{frame}
+
+
+\begin{comment}
+\begin{frame}
+\frametitle{What is texture?}
+{\color{blue}\emph{Texture}} is actually a very nebulous concept, often attributed to human perception, as either the feel or the appearance of (woven) fabric\footnote{Mark S.Nixon and Alberto S.Aguado, ``Feature Extraction \& Image Processing for Computer Vision'', Publishing House of Electronics Industry, 2013.}.
+\begin{figure}[!ht]
+  \begin{minipage}[t]{0.35\textwidth}
+  \includegraphics[width=1.3in]{texture1.jpg}
+  \end{minipage}
+  \begin{minipage}[t]{0.35\textwidth}
+  \includegraphics[width=1.3in]{texture2.jpg}
+  \end{minipage}
+  \begin{minipage}[t]{0.35\textwidth}
+  \includegraphics[width=1.3in]{texture3.jpg}
+  \end{minipage}
+  \begin{minipage}[t]{0.35\textwidth}
+  \includegraphics[width=1.3in]{texture4.jpg}
+  \end{minipage}
+  \end{figure} 
+\end{frame}
+
+%
+%\begin{frame}
+%\frametitle{Texture Descriptor}
+%\begin{itemize}
+%\item Structural approaches
+%\item Statistical approaches
+%\item Combination approaches
+%\item Local binary patterns
+%\end{itemize}
+%\end{frame}
+
+
+\begin{frame}
+\frametitle{LBP (Local Binary Pattern)}
+\centering\includegraphics[width=10cm]{LBP.png}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{LBP}
+  \begin{figure}[!ht]
+  \begin{minipage}[t]{0.46\textwidth}
+  \includegraphics[width=1.8in]{example1.jpg}
+  \end{minipage}
+  \begin{minipage}[t]{0.46\textwidth}
+  \includegraphics[width=1.8in]{LBP1.png}
+  \end{minipage}
+  \end{figure} 
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{173} Regional property descriptor}
+\begin{itemize}
+\item Geometric feature descriptor 
+\begin{itemize}
+\item size
+\item perimeter
+\item position
+\item area of the neighbor regions
+\end{itemize}
+\item Appearance feature descriptor
+\begin{itemize}
+\item the variances of the RGB values
+\item the variances of the response of the LM filters
+\end{itemize}
+\end{itemize}
+\end{frame}
+\end{comment}
+
+\section{Priors}
+
+\begin{frame}
+\frametitle{Priors}
+\begin{enumerate}
+\item Center Prior/Location Prior
+\item Backgroundness Prior
+\item Boundary Connectivity Prior
+\item Color Prior
+\item Objectness Prior
+\item Smoothness Prior
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{172} Center Prior/Location Prior}
+{\color{blue}Objects near the image center are more attractive to people}\footnote{Lin Zhang \textit{et al.}, ``SDSP: A novel saliency detection method by combining simple priors'', in ICIP, 2013.}{\color{blue}.}
+
+\vspace{0.15in}
+
+This prior can be simply and effectively modeled as a Gaussian map.
+
+\vspace{0.15in}
+
+\begin{columns}
+\begin{column}{\leftmargini}
+\end{column}
+\hspace{-1in}
+\begin{column}{0.1\linewidth}
+\centering\includegraphics[width=3cm]{CenterPrior}
+\end{column}
+\begin{column}{0.7\linewidth}
+\begin{align}
+S_D(\textbf{x}) = exp\left(-\frac{||\textbf{x}-\textbf{c}||_2^2}{\sigma_D^2}\right)
+\end{align}
+\end{column}
+\end{columns}\vspace{1ex}
+\vspace{-0.4in}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{172} Center Prior/Location Prior}
+{\color{blue}The salient object in an image is most probably placed near the center of the image}\footnote{Huaizu Jiang \textit{et al.}, "Automatic salient object segmentation based on context and shape prior", in BMVC, 2011}{\color{blue}.}
+
+\vspace{0.2in}
+
+Gaussian falloff weight:
+\begin{align}
+w_i^{(n)} = exp\left(-9\frac{(dx_i^{(n)})^2}{w^2}-9\frac{(dy_i^{(n)})^2}{h^2}\right)
+\end{align}
+
+\centering\includegraphics[width=3cm]{CBcolorPrior.png}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{172} Center Prior/Location Prior}
+Assigning higher saliency to the image elements near the image center becomes invalid when the objects are placed far off the image center\footnote{Chuan Yang \textit{et al.}, ``Graph-regularized saliency detection with convex-hull-based center prior'', Signal Processing Letters, 2013.}.
+\begin{columns}
+\begin{column}{\leftmargini}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+\item Compute a convex hull enclosing interesting points to estimate the location of salient region.
+\item Use the centroid of the convex hull as the center to get the convex-hull-based center prior map.
+\end{itemize}
+\end{column}
+\begin{column}{0.5\linewidth}
+\centering\includegraphics[width=4cm]{convexHull}
+\end{column}
+\end{columns}\vspace{1ex}
+\end{frame}
+
+\begin{frame}
+\frametitle{Center Prior/Location Prior}
+\begin{figure}
+  \centering
+\includegraphics[width=4in]{center_prior.png}
+  \caption{Center prior}
+ \label{center prior}
+  \end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{173} Backgroundness Prior}
+{\color{blue}\emph{Backgroundness prior}} is more general than center prior because salient objects can be placed off the center, but they seldom touch the image boundary\footnote{Yichen Wei \textit{et al.}, ``Geodesic saliency using background priors'', in ECCV, 2012.}.
+\begin{itemize}
+\item Assuming that a narrow border of the image is background region, regional saliency can be computed as the contrast versus ``background''.
+\end{itemize}
+\vspace{0.3in}
+\end{frame}
+
+\begin{frame}
+\frametitle{\ding{173} Backgroundness Prior}
+\centering\includegraphics[width=0.7\textwidth]{GS.png}
+
+\begin{align}
+saliency(P) = \min_{P_1=P, P_2, \ldots, P_n=B}\sum_{i=1}^{n-1}weight(P_i, P_{i+1}), \\
+s.t.(P_i, P_{i+1})\in \varepsilon \nonumber
+\end{align}
+\end{frame}
+
+\begin{frame}
+\frametitle{Backgroundness Prior}
+\begin{figure}
+  \centering
+\includegraphics[width=3.5in]{backgroundness.png}
+  \caption{Backgroundness prior}
+ \label{center prior}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{\ding{174} Boundary Connectivity Prior}
+{\color{blue}Object regions are much less connected to image boundaries than background ones}\footnote{Wangjiang Zhu \textit{et al.}, ``Saliency optimization from robust background detection'', in CVPR, 2014.}{\color{blue}.}
+
+\centering\includegraphics[width=4cm]{wCtr.png}
+
+\emph{Boundary connectivity} is defined to quantify how heavily a region R is connected to the image boundaries.
+\begin{align}
+BndCon(R) = \frac{|\{p|p\in R, p\in Bnd\}|}{\sqrt{|\{p|p\in R\}|}}
+\end{align}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{175} Color Prior}
+{\color{blue}Warm colors, such as red and yellow, are more pronounced to the human visual system than cold colors, such as green and blue}\footnote{Lin Zhang \textit{et al.}, ``SDSP: A novel saliency detection method by combining simple priors'', in ICIP, 2013.}{\color{blue}.}
+\begin{align}
+f_{an}(\textbf{x}) & =\frac{f_a(x)-min(a)}{max(a)-min(a)}, f_{bn}(\textbf{x}) = \frac{f_b(x)-min(b)}{max(b)-min(b)}\\
+S_c(\textbf{x}) & = 1-exp\left(-\frac{f_{an}^2(\textbf{x})+f_{bn}^2(\textbf{x})}{\sigma_c^2}\right)
+\end{align}
+\begin{itemize}
+\item $a^*$-channel represents green-red information
+\item $b^*$-channel represents blue-yellow information
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Color Prior}
+\begin{figure}
+  \centering
+\includegraphics[width=3.5in]{color_prior.png}
+  \caption{Color prior}
+ \label{center prior}
+  \end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{176} Objectness Prior}
+{\color{blue}\emph{Objectness}} is defined as the probability of there being a complete object in a local window centered on each pixel\footnote{Peng Jiang \textit{et al.}, ``Salient region detection by ufo: uniqueness, focusness and objectness'', in ICCV, 2013.}.
+\begin{itemize}
+\item Randomly sample $N$ windows over the image 
+\item Assign each window $w$ a probability score $P(w)$ to indicate its objectness
+\item Sum all the probability scores in windows that contains pixel $x$
+\end{itemize}
+\begin{align}
+O_p(x) = \sum_{w \in W \text{ }and \text{ } x \in w} P(W_x)
+\end{align}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{177} Smoothness Prior}
+{\color{blue}\emph{Smoothness}} constraint is often encoded by adding a pair-wise potential to the energy function which encourages neighboring pixels in the image to take the same label\footnote{Chuan Yang \textit{et al.}, ``Graph-regularized saliency detection with convex-hull-based center prior'', Signal Processing Letters, 2013.}.
+\begin{align}
+w_{ij} & = exp\left(-\frac{||c_i-c_j||}{2\sigma_w^2}\right)\\
+E(S) & = \sum_{i}(S(i)-S_{in}(i))^2+\lambda \sum_{i, j}w_{ij}(S(i)-S(j))^2
+\end{align}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{177} Smoothness Prior}
+\centering\includegraphics[width=10cm]{smoothness}
+\end{frame}
+
+
+
+
+\section{Aggregation}
+
+\begin{frame}
+\frametitle{\ding{172} Non-linear\footnote{Peng Jiang \textit{et al.}, ``Salient region detection by ufo: uniqueness, focusness and objectness'', in ICCV, 2013. }}
+Combining the focusness, the objectness and the uniqueness maps:
+\begin{align}
+S = exp( F + U) \times O
+\end{align}
+\end{frame}
+
+\begin{frame}
+\frametitle{\ding{173} Energy minization\footnote{Wangjiang Zhu \textit{et al.}, ``Saliency optimization from robust background detection'', in CVPR, 2014.}}
+The ideal output of salient object detection is a clean binary object/background segmentation.
+
+\begin{align}
+\underbrace{\sum_{i=1}^{N}w_i^{bg}s_i^2}_{background}+\underbrace{\sum_{i=1}^{N}w_i^{fg}(s_i-1)^2}_{foreground}+\underbrace{\sum_{i, j}w_{ij}(s_i-s_j)^2}_{smoothness}
+\end{align}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\ding{174} Machine Learning\footnote{Huaizu Jiang \textit{et al.}, ``Salient object detection: a discriminative regional feature integration approach'', in CVPR, 2013.}}
+Training examples: 
+\begin{itemize}
+\item a set of confident regions $R = \{ R_1, R_2, \ldots, R_Q\}$
+\item the responding saliency scores $A = \{a_1, a_2, \ldots, a_Q\}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: SDSP\footnote{Lin Zhang \textit{et al.}, ``SDSP: A novel saliency detection method by combining simple priors'', in ICIP, 2013.} }
+
+\centering\includegraphics[width=5.7cm]{SDSP}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: SDSP}
+\begin{figure}
+  \centering
+\includegraphics[width=3in]{3.jpg}
+  \caption{Image}
+ \label{sdsp3}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: SDSP}
+\begin{figure}
+  \centering
+\includegraphics[width=4in]{sdsp4.png}
+  \caption{SDSP}
+ \label{sdsp3}
+  \end{figure}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Example: SDSP}
+\begin{figure}
+  \centering
+\includegraphics[width=3in]{sdsp1.jpg}
+  \caption{Image}
+ \label{sdsp1}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: SDSP}
+\begin{figure}
+  \centering
+\includegraphics[width=4in]{sdsp2.png}
+  \caption{SDSP}
+ \label{sdsp2}
+  \end{figure}
+\end{frame}
+
+
+
+\begin{frame}
+  \vspace{2cm}
+  \centering
+  \zhushadow{\color{blue}\Huge{Thanks}}\\
+  \vspace{1.5cm}
+  \begin{flushright}
+  \emph{\href{zhuyafei4520@163.com}{Yafei~Zhu\quad Lin~Chang}}\\
+  \href{http://www.ouc.edu.cn}{Ocean University of China}\\
+  \emph{2016.03}
+  \end{flushright}  
+\end{frame}
+
+
+
+%===============================================================================
+
+
+\end{document}
